@@ -23,7 +23,7 @@ services:
       - nw-backend
 
   wordpress:
-    image: wordpress:5-php7.4-fpm-alpine
+    image: wordpress:6.2.2-php8.0-fpm-alpine
     deploy:
       replicas: 1
       update_config:
@@ -79,17 +79,17 @@ services:
         - "traefik.http.middlewares.www-redir.redirectregex.permanent=true"
         ### Entrypoints
         # web
-        - "traefik.http.routers.myrouter-01.rule=Host(`example.com`, `www.example.com`)"
+        - "traefik.http.routers.myrouter-01.rule=Host(`wp.loc`, `www.wp.loc`)"
         - "traefik.http.routers.myrouter-01.entrypoints=web"
         - "traefik.http.routers.myrouter-01.middlewares=https-redir@docker"
         # websecure
-        - "traefik.http.routers.myrouter-02.rule=Host(`example.com`, `www.example.com`)"
+        - "traefik.http.routers.myrouter-02.rule=Host(`wp.loc`, `www.wp.loc`)"
         - "traefik.http.routers.myrouter-02.entrypoints=websecure"
         - "traefik.http.routers.myrouter-02.middlewares=www-redir@docker"
         - "traefik.http.routers.myrouter-02.tls=true"
         - "traefik.http.routers.myrouter-02.tls.certresolver=myCloudflare"
-        - "traefik.http.routers.myrouter-02.tls.domains[0].main=example.com"
-        - "traefik.http.routers.myrouter-02.tls.domains[0].sans=*.example.com"
+        - "traefik.http.routers.myrouter-02.tls.domains[0].main=wp.loc"
+        - "traefik.http.routers.myrouter-02.tls.domains[0].sans=*.wp.loc"
     depends_on:
       - wordpress
     volumes:
@@ -113,11 +113,11 @@ services:
         delay: 10s
         max_attempts: 10
         window: 15s
-      # ### Traefik Gui. Uncomment to get access on traefik.example.com.
+      # ### Traefik Gui. Uncomment to get access on traefik.wp.loc.
       # labels:
         # - "traefik.enable=true"
         # - "traefik.http.services.traefik-gui.loadbalancer.server.port=8080"
-        # - "traefik.http.routers.traefik-gui.rule=Host(`traefik.example.com`)"
+        # - "traefik.http.routers.traefik-gui.rule=Host(`traefik.wp.loc`)"
         # - "traefik.http.routers.traefik-gui.entrypoints=websecure"
         # - "traefik.http.routers.traefik-gui.service=api@internal"
         # - "traefik.http.routers.traefik-gui.middlewares=traefik-gui-auth"
@@ -139,8 +139,8 @@ services:
       - "--entrypoints.websecure.address=:443"
       - "--entrypoints.websecure.http.tls=true"
       ## Certificate Resolver: cloudflare, type=dnsChallenge
-      - "--certificatesResolvers.myCloudflare.acme.email=postmaster@example.com"
-      - "--certificatesResolvers.myCloudflare.acme.storage=/data/acme.json"
+      - "--certificatesResolvers.myCloudflare.acme.email=postmaster@wp.loc"
+      - "--certificatesResolvers.myCloudflare.acme.storage=/home/simon/work/docker-swarm-wordpress/data/acme.json"
       - "--certificatesResolvers.myCloudflare.acme.caServer=https://acme-staging-v02.api.letsencrypt.org/directory" # Staging. Comment this for Production.
       - "--certificatesResolvers.myCloudflare.acme.dnsChallenge=true"
       - "--certificatesResolvers.myCloudflare.acme.dnsChallenge.provider=cloudflare"
@@ -158,7 +158,7 @@ services:
         mode: host
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - letsencrypt_data:/data
+      - letsencrypt_data:/home/simon/work/docker-swarm-wordpress/data
     networks:
       - nw-web
 
@@ -168,19 +168,19 @@ volumes:
     driver_opts:
        o: bind
        type: none
-       device: /data/wp_data
+       device: /home/simon/work/docker-swarm-wordpress/data/wp_data
   mysql_data:
     driver: local
     driver_opts:
        o: bind
        type: none
-       device: /data/mysql_data
+       device: /home/simon/work/docker-swarm-wordpress/data/mysql_data
   letsencrypt_data:
     driver: local
     driver_opts:
        o: bind
        type: none
-       device: /data/letsencrypt_data
+       device: /home/simon/work/docker-swarm-wordpress/data/letsencrypt_data
 
 networks:
   nw-web:
